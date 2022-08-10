@@ -1,0 +1,35 @@
+[
+  {
+    "tax": 399,
+    "shippingFee": 499,
+    "items": [
+      {
+        "name": "bamboo bowl",
+        "price": 4000,
+        "image": "https://hamdmadeonsite.netlify.app/images/bamboo_bowl.jpg",
+        "amount": 4,
+        "product": "recEHmzvupvT8ZONH"
+      }
+    ]
+  },
+  {
+    "tax": 499,
+    "shippingFee": 799,
+    "items": [
+      {
+        "name": "bedding set",
+        "price": 625599,
+        "image": "https://hamdmadeonsite.netlify.app/images/bedding_set.jpg",
+        "amount": 1,
+        "product": "recd1jIVIEChmiwhe"
+      },
+      {
+        "name": "dinner set",
+        "price": 42999,
+        "image": "https://hamdmadeonsite.netlify.app/images/dinner_set.jpg",
+        "amount": 1,
+        "product": "recotY5Nh00DQFdkm"
+      }
+    ]
+  }
+]
