@@ -1,7 +1,6 @@
 const mongoose = require('mongoose');
 const validator = require('validator');
 const bcrypt = require('bcryptjs');
-const { string } = require('joi');
 
 const ProductSchema = new mongoose.Schema({
     name: {
@@ -22,25 +21,27 @@ const ProductSchema = new mongoose.Schema({
     },
     image: {
         type: String,
-        default: '/uploads/default.jpg'
+        required: [true, 'Please provide valid image']
     },
     category: {
         type: String,
         required: [true, 'Please provide product category'],
-        enum: ['Home', 'Dining', 'bedroom', 'Living Room'],
+        enum: {
+            values: ['home', 'dining', 'bedroom', 'living room'],
+            message: '{VALUE} is not supported for category'
+        }
     },
     company: {
         type: String,
         required: [true, 'Please provide product company'],
         enum: {
-            values: ['Handmade', 'Handmade Pots', 'Handmade Bed & Bath'],
-            message: '{VALUE} is not supported'
+            values: ['Handmade', 'Handmade Pots', 'Handmade Bed & Bath', 'Handmade Mugs'],
+            message: '{VALUE} is not supported for company'
         }
     },
-
     colors: {
         type: [String],
-        required: true
+        required: [true, 'Please Choose Colors'],
     },
 
     featured: {
@@ -61,14 +62,26 @@ const ProductSchema = new mongoose.Schema({
 
     averageRating: {
         type: Number,
-        default: 0
+        default: 1
     },
+
+    stars: {
+        type: Number,
+        default: 1,
+        required: [true, 'Please provide stars'],
+        min: 1,
+        max: 5
+    },
+
     user: {
         type: mongoose.Types.ObjectId,
         ref: 'User',
         required: true
     }
 }, { timestamps: true });
+
+
+
 
 
 module.exports = mongoose.model('Product', ProductSchema);

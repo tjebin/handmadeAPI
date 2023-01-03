@@ -1,6 +1,6 @@
 const createTokenUser = (user) => {
-    console.log(' Create token user........');
-    return { name: user.name, userId: user._id, role: user.role }
+    const userId = user._id.toString();
+    return { name: user.name, userId, role: user.role, gender: user.gender }
 }
 
 module.exports = {
