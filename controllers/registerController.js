@@ -3,8 +3,6 @@ const User = require('../models/Users');
 
 
 const register = async (req, res) => {
-
-    console.log("mm..." + req.body);
     /// User.create();
 
     res.send({ user: req.body });

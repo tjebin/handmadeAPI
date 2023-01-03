@@ -6,20 +6,23 @@ const { createTokenUser } = require('../utils/createTokenUser');
 
 
 const register = async (req, res) => {
-    const { email, name, password } = req.body;
+    console.log(req.body.gender);
+
+    const { email, name, password, gender } = req.body;
     const emailExists = await User.findOne({ email });
     if (emailExists) {
         throw new CustomError.BadRequestError('Email already exists');
     }
 
-    const isFirstAccount = await User.countDocuments({}) === 0;
-    const role = isFirstAccount ? 'admin' : 'user';
-    const user = await User.create({ email, name, password, role });
+    const user = await User.create({ email, name, password, gender });
 
     const tokenUser = createTokenUser(user);
 
     attachCookiesToResponse({ res, user: tokenUser });
-    res.status(StatusCodes.CREATED).json({ user: tokenUser });
+
+    const token = createToken({ payload: tokenUser });
+
+    res.status(StatusCodes.CREATED).json({ user: tokenUser, token: token });
 }
 
 const login = async (req, res) => {
@@ -28,7 +31,6 @@ const login = async (req, res) => {
         throw new CustomError.BadRequestError('Email or password is not valid');
     }
     const user = await User.findOne({ email });
-
     if (!user) {
         throw new CustomError.UnauthenticatedError('Invalid Credentioals');
     }
@@ -42,7 +44,10 @@ const login = async (req, res) => {
     const tokenUser = createTokenUser(user);
 
     attachCookiesToResponse({ res, user: tokenUser });
-    res.status(StatusCodes.OK).json({ user: tokenUser });
+
+    const token = createToken({ payload: tokenUser });
+
+    res.status(StatusCodes.OK).json({ user: tokenUser, token: token });
 }
 
 const logout = async (req, res) => {

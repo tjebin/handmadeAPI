@@ -1,81 +1,96 @@
-
 const Product = require('../models/Product');
 const { StatusCodes } = require('http-status-codes');
 const CustomError = require('../errors');
+const path = require('path');
 
 const { checkPermissions } = require('../utils');
 
-
-
 const createProduct = async (req, res) => {
-    checkPermissions(req.user, user._id);
+    const requestUserId = req.user.userId;
+    req.body.user = requestUserId;
 
-    const { name, price, description, image, category, company, colors, featured, freeShipping, inventory, averageRating } = req.body;
-    // const { email, name, password } = req.body;
-    // const emailExists = await User.findOne({ email });
-    // if (emailExists) {
-    //     throw new CustomError.BadRequestError('Email already exists');
-    // }
-
-    const product = await Product.create({ name, price, description, image, category, company, colors, featured, freeShipping, inventory, averageRating, user: req.user.userId });
+    const product = await Product.create(req.body);
     res.status(StatusCodes.CREATED).json({ product });
 }
 
 const getAllProducts = async (req, res) => {
-    const products = await Product.find({});
-    res.status(StatusCodes.OK).json({ products });
+    let products = {};
+    products = await Product.find({});
 
+    // if (req.user.role === 'admin') {
+    //     products = await Product.find({});
+    // } else {
+    //     products = await Product.find({ user: req.user.userId });
+    // }
+
+    res.status(StatusCodes.OK).json({ products, count: products.length });
 }
 
 const getSingleProduct = async (req, res) => {
-    const product = await Product.findOne({ _id: req.params.id });
+    const { id: productId } = req.params;
+
+    const product = await Product.findOne({ _id: productId });
 
     if (!product) {
-        throw new CustomError.NotFoundError(`No product with id : ${req.params.id}`);
+        throw new CustomError.NotFoundError(`No product with id : ${productId}`);
+    }
+
+    checkPermissions(req.user, product.user);
+
+    res.status(StatusCodes.OK).json({ product });
+}
+
+
+const updateProduct = async (req, res) => {
+    const { id: productId } = req.params;
+    const product = await Product.findOneAndUpdate(
+        { _id: productId },
+        req.body,
+        { new: true, runValidators: true });
+
+    if (!product) {
+        throw new CustomError.NotFoundError(`No product with id : ${productId}`);
     }
 
     res.status(StatusCodes.OK).json({ product });
 }
 
 
-// update user with user.save()
-
-const updateProduct = async (req, res) => {
-    checkPermissions(req.user, user._id);
-
-    const { name, price, description, image, category, company, colors, featured, freeShipping, inventory, averageRating } = req.body;
-
-
-    // const { name, email } = req.body;
-
-    // if (!name || !email) {
-    //     throw new CustomError.BadRequestError('please provide name and email');
-    // }
-    // const user = await User.findOne({ _id: req.user.userId });
-
-    // user.email = email;
-    // user.name = name;
-
-    // await user.save();
-
-
-    // const tokenUser = createTokenUser(user);
-    // attachCookiesToResponse({ res, user: tokenUser });
-    // res.status(StatusCodes.OK).json({ user: tokenUser });
-
-}
-
-
 const deleteProduct = async (req, res) => {
-    checkPermissions(req.user, user._id);
-    const product = await Product.findByIdAndDelete({ _id: req.params.id });
-    res.status(StatusCodes.OK).json({ msg: 'User got deleted' });
+    const { id: productId } = req.params;
+    const product = await Product.findOne({ _id: productId });
+
+    if (!product) {
+        throw new CustomError.NotFoundError(`No product with id : ${productId}`);
+    }
+
+    await product.remove();
+    res.status(StatusCodes.OK).json({ msg: 'Success || Product Removed' })
+
 }
 
 const uploadImage = async (req, res) => {
-    checkPermissions(req.user, user._id);
+    if (!req.files) {
+        throw new CustomError.BadRequestError('No File Uploaded');
+    } else {
+        let uploadedFile = req.files.file;
 
-    res.send('delete user');
+        if (!uploadedFile.mimetype.startsWith('image')) {
+            throw new CustomError.BadRequestError('Please upload a image');
+        }
+
+        const maxSize = 1024 * 1024;
+
+        // if (uploadedFile.size > maxSize) {
+        //     throw new CustomError.BadRequestError('Please upload image smaller than 1MB ');
+        // }
+
+        const imagePath = path.join(__dirname, '../public/uploads/images/');
+
+        uploadedFile.mv(imagePath + uploadedFile.name);
+
+        res.status(StatusCodes.OK).json({ 'image': `/uploads/${uploadedFile.name}` });
+    }
 }
 module.exports = {
     createProduct,
